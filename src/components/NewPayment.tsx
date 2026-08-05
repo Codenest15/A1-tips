@@ -92,7 +92,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
         },
         callback: (response: PaystackResponse) => {
           // Verify payment with backend
-          fetch(`https://coral-app-l62hg.ondigitalocean.app/payment/verify`, {
+          fetch(`https://a1-tips-backend-main.onrender.com/payment/verify`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -134,8 +134,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
   };
 
 
-  const getCurrencyInfo = (countryCode: string) => {
-    const currencyMap: { [key: string]: { symbol: string; code: string; rate: number } } = {
+  const getCurrencyInfo = (countryCode: string) => {const currencyMap: { [key: string]: { symbol: string; code: string; rate: number } } = {
       'NG': { symbol: '₦', code: 'NGN', rate: 135.85 }, // 1 GHS = 135.85 NGN
       'US': { symbol: '$', code: 'USD', rate: 0.093 }, // 1 GHS = 0.093 USD
       'UK': { symbol: '£', code: 'GBP', rate: 0.051 }, // 1 GHS = 0.051 GBP
@@ -251,8 +250,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
       });
 
       if (!response.ok) {
-        const errorBody = await response.json();
-        throw new Error(errorBody.detail || 'Failed to create Accrue payment link.');
+        const errorBody = await response.json();throw new Error(errorBody.detail || 'Failed to create Accrue payment link.');
       }
 
       const data = await response.json();
@@ -356,12 +354,11 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-medium">{countryCode && countryCode.length === 2 ? `${displayCurrency}${displayAmount || vipamount}` : `₵${vipamount} GHS`}</span>
+                <span className="font-medium">{countryCode && countryCode.length === 2 ? ${displayCurrency}${displayAmount || vipamount} : `₵${vipamount} GHS`}</span>
               </div>
 
               {countryCode && countryCode.length === 2 && displayAmount && (
-                <div className="bg-green-50 p-2 rounded text-xs text-green-800">
-                  💱 Converted: {vipamount} GHS = {displayCurrency}{displayAmount} {getCurrencyInfo(countryCode).code}
+                <div className="bg-green-50 p-2 rounded text-xs text-green-800">💱 Converted: {vipamount} GHS = {displayCurrency}{displayAmount} {getCurrencyInfo(countryCode).code}
                 </div>
               )}
 
@@ -393,10 +390,10 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
               <button
                 onClick={initiateDeposit} 
-                disabled={loading || !vipamount || !countryCode || countryCode.length !== 2}
+                disabled={loading  !vipamount  !countryCode || countryCode.length !== 2}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
               >
-                {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || vipamount}` : 'Enter Country Code'}
+                {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? Pay ${displayCurrency}${displayAmount || vipamount} : 'Enter Country Code'}
               </button>
 
               {error && <p className="text-red-500 text-xs">Error: {error}</p>}
@@ -446,8 +443,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               <button 
                 onClick={initiateAccruePayment} 
                 disabled={loading || !vipamount}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
-              >
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors">
                 {loading ? 'Processing...' : 'Pay with Accrue'}
               </button>
 
