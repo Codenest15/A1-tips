@@ -56,9 +56,6 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
   const [showCashrampPayment, setShowCashrampPayment] = useState<boolean>(false);
   const [displayAmount, setDisplayAmount] = useState<number | undefined>(vipamount);
   const [displayCurrency, setDisplayCurrency] = useState<string>('USD');
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [isPolling, setIsPolling] = useState<boolean>(false);
-  const [pollMessage, setPollMessage] = useState<string>('');
 
   const publicKey = "pk_live_86fde08e9c8e0c05ac59a162c13a370897a0828b";
 
@@ -190,8 +187,8 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
       currency: displayCurrency === 'USD' ? 'USD' : getCurrencyInfo(countryCode).code,
       phoneNumber: phoneNumber,
       countryCode: countryCode,
-      gameType: purchaseGameType,
       email: userEmail,
+      gameType: purchaseGameType,
       firstName: 'Test',
       lastName: 'Win'
     };
@@ -243,14 +240,16 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
           }
         }, 5000); // Check every 5 seconds
       } else {
-        throw new Error('Payment initialization failed. Status: ' + status);
+        throw new Error('No hosted link received from the server.');
       }
+
     } catch (err) {
       console.error('Deposit initiation failed:', err);
       setError(err.message);
-      setIsPolling(false);
     } finally {
-      setLoading(false);
+      // If the redirect is successful, this line is not reached, 
+      // but it's important for error cases.
+      setLoading(false); 
     }
   };
 
@@ -344,7 +343,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               >
                 IN GHANA
               </button>
-              <button
+              {/*<button
                 onClick={() => handleLocationSelect('other')}
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-bold text-lg transition-colors"
               >
@@ -368,7 +367,6 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               onClick={handleClosePayment}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close payment form"
-              disabled={isPolling}
             >
               <FaTimes className="w-4 h-4" />
               </button>
@@ -445,13 +443,13 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
                 </>
               )}
 
-              {isPolling && (
-                <div className="flex flex-col items-center justify-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-3"></div>
-                  <p className="text-center text-sm font-medium text-green-600 mb-2">{pollMessage}</p>
-                  <p className="text-center text-xs text-gray-600">Checking payment status...</p>
-                </div>
-              )}
+              <button
+                onClick={initiateDeposit} 
+                disabled={loading || !vipamount || !countryCode || countryCode.length !== 2}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
+              >
+                {loading ? 'Processing...' : countryCode && countryCode.length === 2 ? `Pay ${displayCurrency}${displayAmount || vipamount}` : 'Enter Country Code'}
+              </button>
 
               {error && <p className="text-red-500 text-xs">Error: {error}</p>}
             </div>
