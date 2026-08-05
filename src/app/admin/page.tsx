@@ -16,7 +16,7 @@ export default function Admin() {
   useEffect(() => {
     const fetchVipPlans = async () => {
       try {
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-list');
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-list');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch VIP plans: ${response.statusText}`);
@@ -140,21 +140,21 @@ export default function Admin() {
       const statsConfig = [
         {
           title: 'Total Users',
-          endpoint: 'https://coral-app-l62hg.ondigitalocean.app/auth/total-users',
+          endpoint: 'https://a1-tips-backend-main.onrender.com/auth/total-users',
           icon: FaUsers,
           color: 'text-blue-600',
           bgColor: 'bg-blue-100'
         },
         {
           title: 'Active Games',
-          endpoint: 'https://coral-app-l62hg.ondigitalocean.app/games/number-of-vip-bookings-today',
+          endpoint: 'https://a1-tips-backend-main.onrender.com/games/number-of-vip-bookings-today',
           icon: FaGamepad,
           color: 'text-green-600',
           bgColor: 'bg-green-100'
         },
         {
           title: 'VIP Subscriptions',
-          endpoint: 'https://coral-app-l62hg.ondigitalocean.app/payment/number-of-purchases',
+          endpoint: 'https://a1-tips-backend-main.onrender.com/payment/number-of-purchases',
           icon: FaCrown,
           color: 'text-orange-600',
           bgColor: 'bg-orange-100'
@@ -203,7 +203,7 @@ export default function Admin() {
       
       setIsLoadingUsers(true);
       try {
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/auth/all-users');
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/auth/all-users');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch users: ${response.statusText}`);
@@ -233,7 +233,7 @@ export default function Admin() {
       if (!isAuthenticated) return;
       
       try {
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/all-bookings');
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/games/all-bookings');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch existing slips: ${response.statusText}`);
@@ -291,8 +291,8 @@ export default function Admin() {
 
       const newStatus = currentPlan.status === 'Available' ? 'Sold Out' : 'Available';
       const endpoint = newStatus === 'Sold Out' 
-        ? `https://coral-app-l62hg.ondigitalocean.app/games/mark-sold-out/${planId}`
-        : `https://coral-app-l62hg.ondigitalocean.app/games/update-availability/${planId}`;
+        ? `https://a1-tips-backend-main.onrender.com/games/mark-sold-out/${planId}`
+        : `https://a1-tips-backend-main.onrender.com/games/update-availability/${planId}`;
 
 
       const response = await fetch(endpoint, {
@@ -341,7 +341,7 @@ export default function Admin() {
     if (!currentBookingCode.trim()) return;
     
     try {
-      const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/load-booking/${currentBookingCode}`);
+      const response = await fetch(`https://a1-tips-backend-main.onrender.com/games/load-booking/${currentBookingCode}`);
       
       if (!response.ok) {
         throw new Error(`Failed to load booking: ${response.statusText}`);
@@ -511,7 +511,7 @@ export default function Admin() {
         games: transformedGames
       };
 
-      const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/upload-booking', {
+      const response = await fetch('https://a1-tips-backend-main.onrender.com/games/upload-booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -590,7 +590,7 @@ export default function Admin() {
         };
 
 
-        const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/update-games-status/${bookingId}`, {
+        const response = await fetch(`https://a1-tips-backend-main.onrender.com/games/update-games-status/${bookingId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -670,7 +670,7 @@ export default function Admin() {
 
       // Delete each booking from backend
       const deletePromises = Array.from(bookingIdsToDelete).map(async (bookingId) => {
-        const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/games/delete-booking/${bookingId}`, {
+        const response = await fetch(`https://a1-tips-backend-main.onrender.com/games/delete-booking/${bookingId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -715,7 +715,7 @@ export default function Admin() {
     try {
       // Encode the message for URL query parameter
       const encodedMessage = encodeURIComponent(smsMessage.trim());
-      const endpoint = `https://coral-app-l62hg.ondigitalocean.app/sms/send_bulk?message=${encodedMessage}`;
+      const endpoint = `https://a1-tips-backend-main.onrender.com/sms/send_bulk?message=${encodedMessage}`;
 
 
       const response = await fetch(endpoint, {

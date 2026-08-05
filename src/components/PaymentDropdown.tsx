@@ -104,7 +104,7 @@ export default function PaymentDropdown({
       },
       callback: (response: PaystackResponse) => {
         // Verify payment with backend
-        fetch(`https://coral-app-l62hg.ondigitalocean.app/payment/verify`, {
+        fetch(`https://a1-tips-backend-main.onrender.com/payment/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -65,7 +65,7 @@ export default function Register() {
           is_staff: false
         };
 
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/auth/sign-up', {
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/auth/sign-up', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -23,7 +23,7 @@ useEffect(() => {
       try {
         const userEmail = localStorage.getItem('email') || '';
         if (!userEmail) return;
-        const response = await fetch(`https://coral-app-l62hg.ondigitalocean.app/auth/games-purchases/${userEmail}`);
+        const response = await fetch(`https://a1-tips-backend-main.onrender.com/auth/games-purchases/${userEmail}`);
         if (!response.ok) throw new Error('Failed to fetch purchases');
         const data = await response.json();
 
