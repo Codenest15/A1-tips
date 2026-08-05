@@ -79,7 +79,7 @@ export default function VIP() {
     useEffect(() => {
       const fetchVipAvailability = async () => {
         try {
-          const response = await fetch('https://api.a1-tips.com/games/vip-list');
+          const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-list');
           
           if (!response.ok) {
             throw new Error(`Failed to fetch VIP availability: ${response.statusText}`);
@@ -144,7 +144,7 @@ export default function VIP() {
       const fetchVipPackages = async () => {
         setIsLoadingVipPackages(true);
         try {
-          const response = await fetch('https://api.a1-tips.com/games/vip-for-today');
+          const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-for-today');
           
           if (!response.ok) {
             throw new Error(`Failed to fetch VIP packages: ${response.statusText}`);
@@ -189,7 +189,7 @@ export default function VIP() {
           apiDate = dateFilter;
         }
 
-        const endpoint = `https://api.a1-tips.com/games/vip-history?date=${apiDate}`;
+        const endpoint = `https://a1-tips-backend-main.onrender.com/games/vip-history?date=${apiDate}`;
         const res = await fetch(endpoint);
         if (!res.ok) throw new Error('VIP history not available yet');
         const data = await res.json();

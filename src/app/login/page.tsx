@@ -26,7 +26,7 @@ export default function Login() {
 
       // Not found in mock data, try backend API
       try {
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/auth/login', {
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

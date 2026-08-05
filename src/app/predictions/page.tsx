@@ -77,7 +77,7 @@ export default function Predictions() {
         
         // Determine which API to call based on date
         if (date === 'today') {
-          endpoint = 'https://coral-app-l62hg.ondigitalocean.app/games/free-bookings';
+          endpoint = 'https://a1-tips-backend-main.onrender.com/games/free-bookings';
         } else {
           // Convert date string to actual date for API
           let apiDate = today; // default to today
@@ -95,7 +95,7 @@ export default function Predictions() {
             apiDate = dateFilter;
           }
           
-          endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/other-games?date=${apiDate}`;
+          endpoint = `https://a1-tips-backend-main.onrender.com/games/other-games?date=${apiDate}`;
         }
   
         const response = await fetch(endpoint);
@@ -200,7 +200,7 @@ export default function Predictions() {
   useEffect(() => {
     const fetchVipAvailability = async () => {
       try {
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-list');
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-list');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch VIP availability: ${response.statusText}`);
@@ -265,7 +265,7 @@ export default function Predictions() {
     const fetchVipPackages = async () => {
       setIsLoadingVipPackages(true);
       try {
-        const response = await fetch('https://coral-app-l62hg.ondigitalocean.app/games/vip-for-today');
+        const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-for-today');
         
         if (!response.ok) {
           throw new Error(`Failed to fetch VIP packages: ${response.statusText}`);
@@ -315,7 +315,7 @@ export default function Predictions() {
         }
 
         // Placeholder endpoint – backend will supply data
-        const endpoint = `https://coral-app-l62hg.ondigitalocean.app/games/vip-history?date=${apiDate}`;
+        const endpoint = `https://a1-tips-backend-main.onrender.com/games/vip-history?date=${apiDate}`;
         const res = await fetch(endpoint);
 
         if (!res.ok) {
