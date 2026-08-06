@@ -586,7 +586,7 @@ export default function Admin() {
         
         // Send each game's status; only the edited game gets the new result
         const gamesPayload = bookingGames.map(game => ({
-          id: game.originalId ?? game.id,
+          game_id: game.originalId ?? game.id,
           status: isSameGame(game, editingGame) ? result : game.match_status
         }));
 
