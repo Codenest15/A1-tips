@@ -572,6 +572,7 @@ export default function Admin() {
           throw new Error('No booking ID found for this game');
         }
 
+
         // Backend identifies games by index within the booking (game_id)
         const payload = {
           games: [
