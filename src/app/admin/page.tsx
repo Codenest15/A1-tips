@@ -242,10 +242,10 @@ export default function Admin() {
         const bookingsData = await response.json();
         
         // Transform API response to match current UI format
-        const transformedSlips = bookingsData.map((booking) => {
-          return booking.games.map((game) => ({
-            id: game.id, // Use backend id as id
-            originalId: game.id, // Keep for reference
+        const transformedSlips = bookingsData.flatMap((booking) =>
+          booking.games.map((game, gameIndex) => ({
+            id: `${booking.booking.id}-${game.id ?? gameIndex}-${game.home_team}-${game.away_team}`,
+            originalId: game.id ?? gameIndex,
             match: `${game.home_team} vs ${game.away_team}`,
             type: game.prediction,
             odds: game.odds,
@@ -255,8 +255,8 @@ export default function Admin() {
             sportyCode: booking.booking.share_code,
             match_status: game.match_status || 'Pending',
             booking_id: booking.booking.id // Store booking ID for backend updates
-          }));
-        }).flat(); // Flatten array of arrays into single array
+          }))
+        );
         
         // Update Slips with fetched data
         setLoadedGames(prev => ({
@@ -544,6 +544,10 @@ export default function Admin() {
     }
   };
 
+  const isSameGame = (game, target) =>
+    game.booking_id === target.booking_id &&
+    String(game.id) === String(target.id);
+
   const handleEditGame = (game, slipId = null) => {
     setEditingGame(game);
     setGameResult(game.match_status || 'Pending');       
@@ -553,12 +557,11 @@ export default function Admin() {
   const handleSaveResult = async (result) => {
     if (result && editingGame) {
       
-      // Update the game result in Slips
+      // Update only the selected game in Slips
       setLoadedGames(prev => {
         const updatedSlips = prev.Slips.map(game => {
-          if (game.id === editingGame.id) {
-            const updatedGame = { ...game, match_status: result };
-            return updatedGame;
+          if (isSameGame(game, editingGame)) {
+            return { ...game, match_status: result };
           }
           return game;
         });
@@ -576,13 +579,15 @@ export default function Admin() {
           throw new Error('No booking ID found for this game');
         }
 
-        // Get all games for this booking
-        const bookingGames = loadedGames.Slips.filter(game => game.booking_id === bookingId);
+        // Get all games for this booking only
+        const bookingGames = loadedGames.Slips.filter(
+          game => game.booking_id === bookingId
+        );
         
-        // Create payload with all games' statuses
+        // Send each game's status; only the edited game gets the new result
         const gamesPayload = bookingGames.map(game => ({
-          id: game.id,
-          status: game.id === editingGame.id ? result : game.match_status // Use updated result for the edited game
+          id: game.originalId ?? game.id,
+          status: isSameGame(game, editingGame) ? result : game.match_status
         }));
 
         const payload = {

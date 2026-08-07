@@ -12,50 +12,89 @@ export default function Dashboard() {
   const [isSubtitleVisible, setIsSubtitleVisible] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [purchasedGames, setPurchasedGames] = useState<any[]>([]);
+  const [isLoadingPurchases, setIsLoadingPurchases] = useState(true);
 
-  // Simulate user data - in real app this would come from authentication
-  
-  // const userEmail = localStorage.getItem('email') || 'user@example.com';
-    const [purchasedGames, setPurchasedGames] = useState<any[]>([]);
-useEffect(() => {
+  useEffect(() => {
     const fetchPurchases = async () => {
-      try {
-        const userEmail = localStorage.getItem('email') || '';
-        if (!userEmail) return;
-        const response = await fetch(`https://a1-tips-backend-main.onrender.com/auth/games-purchases/${userEmail}`);
-        if (!response.ok) throw new Error('Failed to fetch purchases');
-        const data = await response.json();
+      if (!isAuthenticated) {
+        setPurchasedGames([]);
+        setIsLoadingPurchases(false);
+        return;
+      }
 
-        // Transform API response to purchasedGames structure
-        const transformed = data.map((purchase: any) => {
-          const allCompleted = purchase.games.every((g: any) => {
-            const status = g.match_status?.toLowerCase();
-            return status === 'won' || status === 'lost';
-          });
-          return {
-            id: purchase.booking_id,
-            package: purchase.category,
-            games: purchase.games.map((g: any) => ({
-              match: `${g.home_team} vs ${g.away_team}`,
-              prediction: g.prediction,
-              odds: String(g.odds),
-              bookingCode: purchase.share_code,
-              status: g.match_status,
-            })),
-            purchaseDate: purchase.created_at ? purchase.created_at.slice(0, 10) : '',
-            price: purchase.price && purchase.price.trim() !== '' ? purchase.price : 'N/A',
-            status: allCompleted ? 'Completed' : 'Active',
-          };
+      setIsLoadingPurchases(true);
+
+      try {
+        const userEmail = user?.email || localStorage.getItem('email') || '';
+        if (!userEmail) {
+          setPurchasedGames([]);
+          return;
+        }
+
+        const encodedEmail = encodeURIComponent(userEmail);
+        const purchasesResponse = await fetch(
+          `https://a1-tips-backend-main.onrender.com/auth/user-purchases/${encodedEmail}`
+        );
+        if (!purchasesResponse.ok) {
+          throw new Error('Failed to fetch purchases');
+        }
+
+        const purchases = await purchasesResponse.json();
+        const purchasedCategories = (['VIP1', 'VIP2', 'VIP3'] as const).filter((category) => {
+          const key = category.toLowerCase() as 'vip1' | 'vip2' | 'vip3';
+          return purchases[key] === true;
         });
+
+        if (purchasedCategories.length === 0) {
+          setPurchasedGames([]);
+          return;
+        }
+
+        const vipResponse = await fetch(
+          'https://a1-tips-backend-main.onrender.com/games/vip-for-today'
+        );
+        if (!vipResponse.ok) {
+          throw new Error('Failed to fetch purchased game details');
+        }
+
+        const vipPackages = await vipResponse.json();
+        const transformed = vipPackages
+          .filter((pkg: any) => purchasedCategories.includes(pkg.category))
+          .map((pkg: any) => {
+            const allCompleted = pkg.games.every((g: any) => {
+              const status = g.match_status?.toLowerCase();
+              return status === 'won' || status === 'lost';
+            });
+
+            return {
+              id: pkg.id,
+              package: pkg.category,
+              games: pkg.games.map((g: any) => ({
+                match: `${g.home_team} vs ${g.away_team}`,
+                prediction: g.prediction,
+                odds: String(g.odds),
+                bookingCode: pkg.booking_code,
+                status: g.match_status,
+              })),
+              purchaseDate: pkg.deadline ? pkg.deadline.slice(0, 10) : '',
+              price: pkg.price && pkg.price.trim() !== '' ? pkg.price : 'N/A',
+              status: allCompleted ? 'Completed' : 'Active',
+            };
+          });
+
         setPurchasedGames(transformed);
       } catch (err) {
         console.error('Error fetching purchases:', err);
         setPurchasedGames([]);
+      } finally {
+        setIsLoadingPurchases(false);
       }
     };
+
     fetchPurchases();
-  }, []);
+  }, [isAuthenticated, user?.email]);
 
 
   // Redirect to login if not authenticated
@@ -98,6 +137,8 @@ useEffect(() => {
   if (!isAuthenticated) {
     return null;
   }
+
+  const normalizeStatus = (status?: string) => status?.toLowerCase() ?? 'pending';
 
   const togglePackage = (packageId: number) => {
     setExpandedPackages(prev => 
@@ -278,6 +319,17 @@ useEffect(() => {
               <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                 Your Purchased Games
               </h3>
+              {isLoadingPurchases ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                  <span className="ml-3 text-gray-600">Loading your purchases...</span>
+                </div>
+              ) : purchasedGames.length === 0 ? (
+                <div className="text-center py-8 text-gray-600">
+                  <p className="font-medium text-gray-900 mb-1">No purchased games yet</p>
+                  <p className="text-sm">Buy a VIP package on the Predictions or VIP page and it will appear here.</p>
+                </div>
+              ) : (
               <div className="space-y-4">
                 {purchasedGames.map((purchase) => (
                   <div key={purchase.id} className="border border-gray-200 rounded-lg">
@@ -323,14 +375,14 @@ useEffect(() => {
                                 <h5 className="text-sm font-semibold text-gray-900">{game.match}</h5>
                                 <span
                                   className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                                    game.status === 'Won'
+                                    normalizeStatus(game.status) === 'won'
                                       ? 'bg-green-500 text-white'
-                                      : game.status === 'Lost'
+                                      : normalizeStatus(game.status) === 'lost'
                                       ? 'bg-red-500 text-white'
                                       : 'bg-yellow-500 text-white'
                                   }`}
                                 >
-                                  {game.status === 'Won' ? '✓' : game.status === 'Lost' ? '✗' : '?'}
+                                  {normalizeStatus(game.status) === 'won' ? '✓' : normalizeStatus(game.status) === 'lost' ? '✗' : '?'}
                                 </span>
                               </div>
                               {/* Only show full details if all games are completed */}
@@ -379,6 +431,7 @@ useEffect(() => {
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
         )}
