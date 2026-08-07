@@ -119,6 +119,36 @@ export default function Admin() {
   
   const router = useRouter();
 
+  const reloadExistingSlips = async () => {
+    const response = await fetch('https://a1-tips-backend-main.onrender.com/games/all-bookings');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch existing slips: ${response.statusText}`);
+    }
+
+    const bookingsData = await response.json();
+    const transformedSlips = bookingsData.flatMap((booking) =>
+      booking.games.map((game, gameIndex) => ({
+        id: `${booking.booking.id}-${gameIndex}-${game.home_team}-${game.away_team}`,
+        gameIndex,
+        originalId: gameIndex,
+        match: `${game.home_team} vs ${game.away_team}`,
+        type: game.prediction,
+        odds: game.odds,
+        originalCategory: booking.booking.category,
+        categoryPrice: booking.booking.price,
+        uploadDate: booking.booking.deadline,
+        sportyCode: booking.booking.share_code,
+        match_status: game.match_status || 'Pending',
+        booking_id: booking.booking.id,
+      }))
+    );
+
+    setLoadedGames(prev => ({
+      ...prev,
+      Slips: transformedSlips,
+    }));
+  };
+
   // Check admin authentication
   useEffect(() => {
     const checkAuth = () => {
@@ -229,48 +259,11 @@ export default function Admin() {
 
   // Fetch existing slips from backend
   useEffect(() => {
-    const fetchExistingSlips = async () => {
-      if (!isAuthenticated) return;
-      
-      try {
-        const response = await fetch('https://a1-tips-backend-main.onrender.com/games/all-bookings');
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch existing slips: ${response.statusText}`);
-        }
-        
-        const bookingsData = await response.json();
-        
-        // Transform API response to match current UI format
-        const transformedSlips = bookingsData.flatMap((booking) =>
-          booking.games.map((game, gameIndex) => ({
-            id: `${booking.booking.id}-${game.id ?? gameIndex}-${game.home_team}-${game.away_team}`,
-            originalId: game.id ?? gameIndex,
-            match: `${game.home_team} vs ${game.away_team}`,
-            type: game.prediction,
-            odds: game.odds,
-            originalCategory: booking.booking.category,
-            categoryPrice: booking.booking.price,
-            uploadDate: booking.booking.deadline,
-            sportyCode: booking.booking.share_code,
-            match_status: game.match_status || 'Pending',
-            booking_id: booking.booking.id // Store booking ID for backend updates
-          }))
-        );
-        
-        // Update Slips with fetched data
-        setLoadedGames(prev => ({
-          ...prev,
-          Slips: transformedSlips
-        }));
-        
-      } catch (error) {
-        console.error('Error fetching existing slips:', error);
-        // Don't show alert for this as it's background loading
-      }
-    };
+    if (!isAuthenticated) return;
 
-    fetchExistingSlips();
+    reloadExistingSlips().catch((error) => {
+      console.error('Error fetching existing slips:', error);
+    });
   }, [isAuthenticated]);
 
   const handleLogout = () => {
@@ -546,7 +539,7 @@ export default function Admin() {
 
   const isSameGame = (game, target) =>
     game.booking_id === target.booking_id &&
-    String(game.id) === String(target.id);
+    game.gameIndex === target.gameIndex;
 
   const handleEditGame = (game, slipId = null) => {
     setEditingGame(game);
@@ -579,21 +572,15 @@ export default function Admin() {
           throw new Error('No booking ID found for this game');
         }
 
-        // Get all games for this booking only
-        const bookingGames = loadedGames.Slips.filter(
-          game => game.booking_id === bookingId
-        );
-        
-        // Send each game's status; only the edited game gets the new result
-        const gamesPayload = bookingGames.map(game => ({
-          id: game.originalId ?? game.id,
-          status: isSameGame(game, editingGame) ? result : game.match_status
-        }));
-
+        // Backend identifies games by index within the booking (game_id)
         const payload = {
-          games: gamesPayload
+          games: [
+            {
+              game_id: editingGame.gameIndex,
+              status: result,
+            },
+          ],
         };
-
 
         const response = await fetch(`https://a1-tips-backend-main.onrender.com/games/update-games-status/${bookingId}`, {
           method: 'POST',
@@ -608,6 +595,8 @@ export default function Admin() {
         }
 
         const responseData = await response.json();
+
+        await reloadExistingSlips();
 
         // Only close modal and reset state on successful API call
       setShowEditModal(false);
@@ -1330,14 +1319,14 @@ export default function Admin() {
                                           <div className="text-sm font-medium text-gray-900">{game.match}</div>
                                           {/* Result Status Icon */}
                                           <div className="ml-1">
-                                            {game.match_status === 'Won' && (
+                                            {(game.match_status === 'Won' || game.match_status?.toLowerCase() === 'won') && (
                                               <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center ml-2">
                                                 <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
                                               </div>
                                             )}
-                                            {game.match_status === 'Lost' && (
+                                            {(game.match_status === 'Lost' || game.match_status?.toLowerCase() === 'lost') && (
                                               <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center ml-2">
                                                 <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />

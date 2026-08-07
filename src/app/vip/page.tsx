@@ -67,6 +67,9 @@ export default function VIP() {
   const anyGameCompleted = (games: Game[]) => {
     return games.some(game => isGameCompleted(game));
   };
+
+  const shouldShowGameResults = (pkg: { updated?: boolean; games: Game[] } | undefined) =>
+    Boolean(pkg?.updated) || anyGameCompleted(pkg?.games ?? []);
   
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -79,7 +82,7 @@ export default function VIP() {
     useEffect(() => {
       const fetchVipAvailability = async () => {
         try {
-          const response = await fetch('https://api.a1-tips.com/games/vip-list');
+          const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-list');
           
           if (!response.ok) {
             throw new Error(`Failed to fetch VIP availability: ${response.statusText}`);
@@ -144,7 +147,7 @@ export default function VIP() {
       const fetchVipPackages = async () => {
         setIsLoadingVipPackages(true);
         try {
-          const response = await fetch('https://api.a1-tips.com/games/vip-for-today');
+          const response = await fetch('https://a1-tips-backend-main.onrender.com/games/vip-for-today');
           
           if (!response.ok) {
             throw new Error(`Failed to fetch VIP packages: ${response.statusText}`);
@@ -189,7 +192,7 @@ export default function VIP() {
           apiDate = dateFilter;
         }
 
-        const endpoint = `https://api.a1-tips.com/games/vip-history?date=${apiDate}`;
+        const endpoint = `https://a1-tips-backend-main.onrender.com/games/vip-history?date=${apiDate}`;
         const res = await fetch(endpoint);
         if (!res.ok) throw new Error('VIP history not available yet');
         const data = await res.json();
@@ -388,7 +391,7 @@ export default function VIP() {
                                                   <span className="ml-2 text-gray-600">Loading matches...</span>
                                                 </div>
                                               ) : vip1 ? (
-                                                vip1.updated ? (
+                                                shouldShowGameResults(vip1) ? (
                                                   <div className="space-y-4">
                                                     {vip1.games.map((game, index) => (
                                                       <div
@@ -522,7 +525,7 @@ export default function VIP() {
                                                   <span className="ml-2 text-gray-600">Loading matches...</span>
                                                 </div>
                                               ) : vip2 ? (
-                                                vip2.updated ? (
+                                                shouldShowGameResults(vip2) ? (
                                                   <div className="space-y-4">
                                                     {vip2.games.map((game, index) => (
                                                       <div key={index} className={`${index < vip2.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
@@ -661,7 +664,7 @@ export default function VIP() {
                                                   <span className="ml-2 text-gray-600">Loading matches...</span>
                                                 </div>
                                               ) : vip3 ? (
-                                                vip3.updated ? (
+                                                shouldShowGameResults(vip3) ? (
                                                   vip3.games.map((game, index) => (
                                                     <div key={index} className={`${index < vip3.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
                                                       <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>

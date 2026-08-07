@@ -54,6 +54,8 @@ export default function Predictions() {
   const anyGameCompleted = (games: any[]) => {
     return games.some(game => isGameCompleted(game));
   };
+  const shouldShowGameResults = (pkg: { updated?: boolean; games: any[] } | undefined) =>
+    Boolean(pkg?.updated) || anyGameCompleted(pkg?.games ?? []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -676,7 +678,7 @@ export default function Predictions() {
                                           <span className="ml-2 text-gray-600">Loading matches...</span>
                                         </div>
                                       ) : getVipPackageByCategory('VIP1') ? (
-                                        getVipPackageByCategory('VIP1')!.updated ? (
+                                        shouldShowGameResults(getVipPackageByCategory('VIP1')) ? (
                                           <div className="space-y-4">
                                             {getVipPackageByCategory('VIP1')!.games.map((game, index) => (
                                               <div
@@ -831,7 +833,7 @@ export default function Predictions() {
                                           <span className="ml-2 text-gray-600">Loading matches...</span>
                                         </div>
                                       ) : getVipPackageByCategory('VIP2') ? (
-                                        getVipPackageByCategory('VIP2')!.updated ? (
+                                        shouldShowGameResults(getVipPackageByCategory('VIP2')) ? (
                                           <div className="space-y-4">
                                             {getVipPackageByCategory('VIP2')!.games.map((game, index) => (
                                               <div
@@ -984,7 +986,7 @@ export default function Predictions() {
                                           <span className="ml-2 text-gray-600">Loading matches...</span>
                                         </div>
                                       ) : getVipPackageByCategory('VIP3')? (
-                                        getVipPackageByCategory('VIP3')!.updated ? (
+                                        shouldShowGameResults(getVipPackageByCategory('VIP3')) ? (
                                           getVipPackageByCategory('VIP3')!.games.map((game, index) => (
                                             <div key={index} className={`${index < getVipPackageByCategory('VIP3')!.games.length - 1 ? 'border-b border-gray-100 pb-3' : ''}`}>
                                               <h4 className="text-gray-900 font-semibold mb-2">{game.home_team} vs {game.away_team}</h4>
