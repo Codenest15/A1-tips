@@ -574,13 +574,13 @@ export default function Admin() {
 
         // Backend identifies games by index within the booking (game_id)
         const payload = {
-          games: [
-            {
-              game_id: editingGame.gameIndex,
-              status: result,
-            },
-          ],
-        };
+            games: [
+              {
+                game_id: editingGame.gameIndex,  // undefined — was never updated
+                status: result,
+              },
+            ],
+          };
 
         const response = await fetch(`https://a1-tips-backend-main.onrender.com/games/update-games-status/${bookingId}`, {
           method: 'POST',
