@@ -242,7 +242,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     try {
       // Call Accrue API endpoint
-      const response = await fetch('https://a1-tips-backend-main.onrender.com/api/v1/create-accrue-payment', {
+      const response = await fetch('http://localhost:8000/api/v1/create-accrue-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
