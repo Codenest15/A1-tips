@@ -123,15 +123,17 @@ export default function PaymentDropdown({
           }
         })
         .then(verificationResult => {
-          onPaymentSuccess(response.reference);
-          // redirect to dashboard
-          router.push('/dashboard');
-          setShowLocationModal(false);
+          if (verificationResult?.status === 'success') {
+            onPaymentSuccess(response.reference);
+            router.push('/dashboard');
+            setShowLocationModal(false);
+            return;
+          }
+          throw new Error(verificationResult?.message || 'Payment was verified but not saved');
         })
         .catch(error => {
           console.error('Error verifying payment:', error);
-          // Still call onPaymentSuccess to maintain UI flow, but log the error
-          onPaymentSuccess(response.reference);
+          alert('Payment verification failed. Your purchase was not saved. Please contact support if you were charged.');
           setShowLocationModal(false);
         });
       },

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FaChartLine, FaTrophy, FaUsers, FaDollarSign, FaCalendarAlt, FaFire, FaCopy, FaCheck } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
+import { fetchVipForToday } from '../../lib/gamesApi';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -52,14 +53,7 @@ export default function Dashboard() {
           return;
         }
 
-        const vipResponse = await fetch(
-          'https://a1-tips-backend-main.onrender.com/games/vip-for-today'
-        );
-        if (!vipResponse.ok) {
-          throw new Error('Failed to fetch purchased game details');
-        }
-
-        const vipPackages = await vipResponse.json();
+        const vipPackages = await fetchVipForToday();
         const transformed = vipPackages
           .filter((pkg: any) => purchasedCategories.includes(pkg.category))
           .map((pkg: any) => {

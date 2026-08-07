@@ -110,14 +110,16 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               throw new Error(`Verification failed: ${verifyResponse.status}`);
             }
           })
-          .then(() => {
-            // redirect to dashboard
-            router.push('/dashboard');
+          .then((verificationResult) => {
+            if (verificationResult?.status === 'success') {
+              router.push('/dashboard');
+              return;
+            }
+            throw new Error(verificationResult?.message || 'Payment was verified but not saved');
           })
           .catch(error => {
             console.error('Error verifying payment:', error);
-            // Still redirect
-            router.push('/dashboard');
+            alert('Payment verification failed. Your purchase was not saved. Please contact support if you were charged.');
           });
         },
         onClose: () => {
