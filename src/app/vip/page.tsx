@@ -299,7 +299,6 @@ export default function VIP() {
   const vip2 = getVipPackageByCategory('VIP2');
   const vip3 = getVipPackageByCategory('VIP3');
 
-  console.log('VIP3 package:', vip3);
 
 
   return (
