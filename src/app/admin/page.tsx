@@ -127,21 +127,20 @@ export default function Admin() {
 
     const bookingsData = await response.json();
     const transformedSlips = bookingsData.flatMap((booking) =>
-      booking.games.map((game, gameIndex) => ({
-        id: `${booking.booking.id}-${gameIndex}-${game.home_team}-${game.away_team}`,
-        gameIndex,
-        originalId: gameIndex,
-        match: `${game.home_team} vs ${game.away_team}`,
-        type: game.prediction,
-        odds: game.odds,
-        originalCategory: booking.booking.category,
-        categoryPrice: booking.booking.price,
-        uploadDate: booking.booking.deadline,
-        sportyCode: booking.booking.share_code,
-        match_status: game.match_status || 'Pending',
-        booking_id: booking.booking.id,
-      }))
-    );
+    booking.games.map((game, gameIndex) => ({
+      id: `${booking.booking.id}-${gameIndex}-${game.home_team}-${game.away_team}`,
+      gameId: game.id,          // <-- real DB id, keep gameIndex only for React key purposes if needed
+      match: `${game.home_team} vs ${game.away_team}`,
+      type: game.prediction,
+      odds: game.odds,
+      originalCategory: booking.booking.category,
+      categoryPrice: booking.booking.price,
+      uploadDate: booking.booking.deadline,
+      sportyCode: booking.booking.share_code,
+      match_status: game.match_status || 'Pending',
+      booking_id: booking.booking.id,
+    }))
+  );
 
     setLoadedGames(prev => ({
       ...prev,
