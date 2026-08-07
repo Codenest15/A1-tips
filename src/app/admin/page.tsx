@@ -538,7 +538,7 @@ export default function Admin() {
 
   const isSameGame = (game, target) =>
     game.booking_id === target.booking_id &&
-    game.gameIndex === target.gameIndex;
+    game.gameId === target.gameId;
 
   const handleEditGame = (game, slipId = null) => {
     setEditingGame(game);
@@ -576,7 +576,7 @@ export default function Admin() {
         const payload = {
             games: [
               {
-                game_id: editingGame.gameIndex,  // undefined — was never updated
+                game_id: editingGame.gameId,
                 status: result,
               },
             ],
