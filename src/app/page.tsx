@@ -18,6 +18,7 @@ export default function Home() {
   const [isLoadingMatches, setIsLoadingMatches] = useState(true);
   const { isAuthenticated } = useAuth();
   const bookingDropdownRef = useRef<HTMLDivElement>(null);
+  const today = new Date().toISOString().split('T')[0];
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function Home() {
           const tomorrow = new Date();
           tomorrow.setDate(tomorrow.getDate() + 1);
           apiDate = tomorrow.toISOString().split('T')[0];
-        } else if (dateFilter) {
+        } else {
           // Use custom date from date picker
           apiDate = dateFilter;
         }
@@ -273,6 +274,7 @@ export default function Home() {
                         id="dateFilter"
                         value={dateFilter}
                         onChange={handleDateChange}
+                        max={today}
                         className="px-3 sm:px-4 py-2 border-2 border-green-500 text-green-500 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer text-sm sm:text-base"
                       />
                     </div>

@@ -193,7 +193,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     try {
       // 1. Call the FastAPI endpoint
-      const response = await fetch('https://a1-tips-backend-main.onrender.com/payments/api/v1/create-deposit', {
+      const response = await fetch('https://api.a1-tips.com/payments/api/v1/create-deposit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
     try {
       // Call Accrue API endpoint
-      const response = await fetch('https://a1-tips-backend-main.onrender.com/api/v1/create-accrue-payment', {
+      const response = await fetch('http://localhost:8000/api/v1/create-accrue-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,7 +360,8 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               </div>
 
               {countryCode && countryCode.length === 2 && displayAmount && (
-                <div className="bg-green-50 p-2 rounded text-xs text-green-800">💱 Converted: {vipamount} GHS = {displayCurrency}{displayAmount} {getCurrencyInfo(countryCode).code}
+                <div className="bg-green-50 p-2 rounded text-xs text-green-800">
+                  💱 Converted: {vipamount} GHS = {displayCurrency}{displayAmount} {getCurrencyInfo(countryCode).code}
                 </div>
               )}
 
@@ -445,7 +446,8 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
               <button 
                 onClick={initiateAccruePayment} 
                 disabled={loading || !vipamount}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors">
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
+              >
                 {loading ? 'Processing...' : 'Pay with Accrue'}
               </button>
 
