@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-import { verifyAndRecordPurchase, getPaymentUserEmail } from '../lib/paymentApi';
 
 interface DepositComponentProps {
   gameType: string;
@@ -45,8 +44,11 @@ declare global {
 }
 
 function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
+  const email = localStorage.getItem('email') || 'test@example.com';
   const router = useRouter();
   const [countryCode, setCountryCode] = useState<string | undefined>();
+  const [userEmail] = useState<string>(email);
+  const [purchaseGameType] = useState<string>(gameType);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showLocationModal, setShowLocationModal] = useState<boolean>(false);
@@ -76,15 +78,10 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
   const handleLocationSelect = (location: string) => {
     setShowLocationModal(false);
     if (location === 'ghana') {
-      const payerEmail = getPaymentUserEmail();
-      if (!payerEmail) {
-        alert('Please log in with your account email before purchasing VIP games.');
-        return;
-      }
-
+      // Initialize Paystack payment
       const handler = window.PaystackPop.setup({
         key: publicKey,
-        email: payerEmail,
+        email: userEmail,
         amount: Math.round(vipamount * 100),
         currency: 'GHS',
         channels: ['card', 'mobile_money', 'bank_transfer'],
@@ -93,20 +90,37 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
           customer_name: 'Test User',
           custom_fields: []
         },
-        callback: async (response: PaystackResponse) => {
-          try {
-            await verifyAndRecordPurchase(response.reference, payerEmail, gameType);
-            router.push('/dashboard');
-          } catch (error) {
+        callback: (response: PaystackResponse) => {
+          // Verify payment with backend
+          fetch(`https://a1-tips-backend-main.onrender.com/payment/verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reference: response.reference,
+              email: userEmail,
+              booking_id: gameType // Using packageName as booking identifier
+            })
+          })
+          .then(verifyResponse => {
+            if (verifyResponse.ok) {
+              return verifyResponse.json();
+            } else {
+              throw new Error(`Verification failed: ${verifyResponse.status}`);
+            }
+          })
+          .then((verificationResult) => {
+            if (verificationResult?.status === 'success') {
+              router.push('/dashboard');
+              return;
+            }
+            throw new Error(verificationResult?.message || 'Payment was verified but not saved');
+          })
+          .catch(error => {
             console.error('Error verifying payment:', error);
-            const message =
-              error instanceof Error
-                ? error.message
-                : 'Payment verification failed. Your purchase was not saved.';
-            alert(
-              `${message} If you were charged, contact support with reference: ${response.reference}`
-            );
-          }
+            alert('Payment verification failed. Your purchase was not saved. Please contact support if you were charged.');
+          });
         },
         onClose: () => {
           setShowLocationModal(false);
@@ -170,18 +184,11 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     setLoading(true);
     setError(null);
 
-    const payerEmail = getPaymentUserEmail();
-    if (!payerEmail) {
-      setError('Please log in before purchasing.');
-      setLoading(false);
-      return;
-    }
-
     const depositData = {
       vipamount: vipamount,
       countryCode: countryCode,
-      email: payerEmail,
-      gameType: gameType,
+      email: userEmail,
+      gameType: purchaseGameType,
       firstName: 'Test',
       lastName: 'Win'
     };
@@ -228,17 +235,10 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
     setLoading(true);
     setError(null);
 
-    const payerEmail = getPaymentUserEmail();
-    if (!payerEmail) {
-      setError('Please log in before purchasing.');
-      setLoading(false);
-      return;
-    }
-
     const accrueData = {
       vipamount: vipamount,
-      email: payerEmail,
-      gameType: gameType,
+      email: userEmail,
+      gameType: purchaseGameType,
       currency: 'USD', // Default currency for Accrue
     };
 
@@ -353,7 +353,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Email:</span>
-                <span className="font-medium">{getPaymentUserEmail() || 'Not logged in'}</span>
+                <span className="font-medium">{userEmail}</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -427,7 +427,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Email:</span>
-                <span className="font-medium">{getPaymentUserEmail() || 'Not logged in'}</span>
+                <span className="font-medium">{userEmail}</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -437,7 +437,7 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Game:</span>
-                <span className="font-medium">{gameType}</span>
+                <span className="font-medium">{purchaseGameType}</span>
               </div>
 
               <div className="bg-blue-50 p-2 rounded text-xs text-blue-800">

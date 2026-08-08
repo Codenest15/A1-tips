@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-import { verifyAndRecordPurchase, getPaymentUserEmail } from '../lib/paymentApi';
 
 interface PaymentDropdownProps {
   packageName: string;
@@ -86,17 +85,13 @@ export default function PaymentDropdown({
   };
 
   const handleLocationSelect = (country: 'ghana' | 'other') => {
-    const payerEmail = getPaymentUserEmail();
-    if (!payerEmail) {
-      alert('Please log in with your account email before purchasing VIP games.');
-      return;
-    }
-
+    const getEmail = localStorage.getItem('email') || 'test@example.com';
     setShowLocationModal(false);
-
+    
+    // Initialize Paystack payment
     const handler = window.PaystackPop.setup({
       key: publicKey,
-      email: payerEmail,
+      email: getEmail,
       amount: country === 'ghana' ? Math.round(priceInGHS * 100) : Math.round(priceInUSD * 100),
       currency: country === 'ghana' ? 'GHS' : 'USD',
       channels: country === 'ghana' 
@@ -107,23 +102,40 @@ export default function PaymentDropdown({
         customer_name: 'Test User',
         custom_fields: []
       },
-      callback: async (response: PaystackResponse) => {
-        try {
-          await verifyAndRecordPurchase(response.reference, payerEmail, packageName);
-          onPaymentSuccess(response.reference);
-          router.push('/dashboard');
-          setShowLocationModal(false);
-        } catch (error) {
+      callback: (response: PaystackResponse) => {
+        // Verify payment with backend
+        fetch(`https://a1-tips-backend-main.onrender.com/payment/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reference: response.reference,
+            email: getEmail,
+            booking_id: packageName // Using packageName as booking identifier
+          })
+        })
+        .then(verifyResponse => {
+          if (verifyResponse.ok) {
+            return verifyResponse.json();
+          } else {
+            throw new Error(`Verification failed: ${verifyResponse.status}`);
+          }
+        })
+        .then(verificationResult => {
+          if (verificationResult?.status === 'success') {
+            onPaymentSuccess(response.reference);
+            router.push('/dashboard');
+            setShowLocationModal(false);
+            return;
+          }
+          throw new Error(verificationResult?.message || 'Payment was verified but not saved');
+        })
+        .catch(error => {
           console.error('Error verifying payment:', error);
-          const message =
-            error instanceof Error
-              ? error.message
-              : 'Payment verification failed. Your purchase was not saved.';
-          alert(
-            `${message} If you were charged, contact support with reference: ${response.reference}`
-          );
+          alert('Payment verification failed. Your purchase was not saved. Please contact support if you were charged.');
           setShowLocationModal(false);
-        }
+        });
       },
       onClose: () => {
         onClose();
