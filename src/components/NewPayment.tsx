@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
+import { getAccountEmailForVerify, parseVerifyResponse } from '../lib/paymentApi';
 
 interface DepositComponentProps {
   gameType: string;
@@ -91,7 +92,8 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
           custom_fields: []
         },
         callback: (response: PaystackResponse) => {
-          // Verify payment with backend
+          const verifyEmail = getAccountEmailForVerify() || userEmail;
+
           fetch(`https://a1-tips-backend-main.onrender.com/payment/verify`, {
             method: 'POST',
             headers: {
@@ -99,27 +101,18 @@ function DepositComponent({ gameType, vipamount}: DepositComponentProps) {
             },
             body: JSON.stringify({
               reference: response.reference,
-              email: userEmail,
-              booking_id: gameType // Using packageName as booking identifier
+              email: verifyEmail,
+              booking_id: gameType
             })
           })
-          .then(verifyResponse => {
-            if (verifyResponse.ok) {
-              return verifyResponse.json();
-            } else {
-              throw new Error(`Verification failed: ${verifyResponse.status}`);
-            }
-          })
-          .then((verificationResult) => {
-            if (verificationResult?.status === 'success') {
-              router.push('/dashboard');
-              return;
-            }
-            throw new Error(verificationResult?.message || 'Payment was verified but not saved');
+          .then(parseVerifyResponse)
+          .then(() => {
+            window.location.href = '/dashboard';
           })
           .catch(error => {
             console.error('Error verifying payment:', error);
-            alert('Payment verification failed. Your purchase was not saved. Please contact support if you were charged.');
+            const message = error instanceof Error ? error.message : 'Payment verification failed.';
+            alert(`${message} Please contact support if you were charged. Ref: ${response.reference}`);
           });
         },
         onClose: () => {
